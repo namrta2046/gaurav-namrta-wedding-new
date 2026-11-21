@@ -320,6 +320,22 @@ function showWeddingThanks(kind,name='',detail=''){
 $('wedding-thanks-close').addEventListener('click',closeWeddingThanks);
 $('wedding-thanks-modal').addEventListener('click',e=>{if(e.target===$('wedding-thanks-modal'))closeWeddingThanks()});
 document.addEventListener('keydown',e=>{if($('wedding-thanks-modal').hidden)return;if(e.key==='Escape')closeWeddingThanks();if(e.key==='Tab') {e.preventDefault();$('wedding-thanks-close').focus()}});
+const SUPABASE_URL='https://izeayrjldlehzbowjdqd.supabase.co';
+const SUPABASE_KEY='sb_publishable_gjGexx3JjJr8X0cpIR5rPQ__XNND4XI';
+async function dbRequest(table,method,payload,query=''){
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),12000);
+  try{
+    const response=await fetch(SUPABASE_URL+'/rest/v1/'+table+query,{
+      method,
+      headers:{'apikey':SUPABASE_KEY,
+        ...(method==='POST'?{'Content-Type':'application/json','Prefer':'return=minimal'}:{})},
+      ...(method==='POST'?{body:JSON.stringify(payload)}:{}),signal:controller.signal
+    });
+    if(!response.ok){let details='';try{const err=await response.json();details=err.message||err.error||err.code||''}catch(_){}throw new Error('Supabase HTTP '+response.status+(details?': '+details:''))}
+    return method==='GET'?response.json():null;
+  }finally{clearTimeout(timeout)}
+}
 function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 const blessingItems=[];const blessingIds=new Set();let blessingIndex=0;
 const spotlightDuration=4000;let spotlightStart=Date.now();
